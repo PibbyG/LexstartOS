@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LexStart OS – Prototype</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F9FAFB; --card:#FFFFFF; --ink:#0F172A; --muted:#475569;
+    --primary:#1E3A8A; --primary-600:#1B377B; --accent:#F59E0B; --accent-600:#D97706;
+    --ring:rgba(30,58,138,.25);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+    color:var(--ink); background:linear-gradient(180deg,#F9FBFF 0%, var(--bg) 100%);
+  }
+  header{
+    position:sticky; top:0; z-index:20; backdrop-filter:saturate(140%) blur(6px);
+    background:rgba(255,255,255,.7); border-bottom:1px solid #E5E7EB;
+  }
+  .container{max-width:1120px; margin:0 auto; padding:0 20px}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:14px 0;}
+  .brand{display:flex; gap:10px; align-items:center; font-weight:700; letter-spacing:.2px}
+  .nav .actions{display:flex; gap:10px}
+  button, .btn{
+    border:0; padding:10px 14px; border-radius:10px; font-weight:600; cursor:pointer;
+    transition:.2s transform, .2s box-shadow, .2s background;
+  }
+  .btn-primary{background:var(--primary); color:#fff}
+  .btn-primary:hover{background:var(--primary-600)}
+  .btn-accent{background:var(--accent); color:#111}
+  .btn-accent:hover{background:var(--accent-600)}
+  .btn-ghost{background:transparent; color:var(--primary)}
+  .btn-ghost:hover{background:#EAF0FF}
+  .badge{padding:4px 8px; border-radius:999px; background:#EEF2FF; color:var(--primary); font-weight:600; font-size:12px}
+
+  .hero{padding:56px 0 8px}
+  .hero h1{margin:8px 0 12px; font-size:34px; line-height:1.15}
+  .hero p{margin:0 0 20px; color:var(--muted)}
+  .hero-cta{display:flex; gap:12px; flex-wrap:wrap}
+  .cards{
+    display:grid; grid-template-columns:repeat(12,1fr); gap:18px; margin:26px 0 40px;
+  }
+  .card{
+    background:var(--card); border:1px solid #E5E7EB; border-radius:var(--radius);
+    box-shadow:0 8px 24px rgba(2,6,23,.05); padding:18px;
+    display:flex; flex-direction:column;
+  }
+  .card:hover{box-shadow:0 10px 28px rgba(2,6,23,.08)}
+  .card h3{margin:0 0 6px; font-size:18px; color:#1E3A8A}
+  .card p{margin:0 0 14px; color:var(--muted)}
+  .card .mini{font-size:12px; color:var(--muted)}
+  .card .open{margin-top:auto}
+  .home .card{display:flex; flex-direction:column}
+  .icon{
+    width:36px; height:36px; border-radius:10px; display:grid; place-items:center; color:#fff; font-weight:700;
+    background:linear-gradient(145deg, #3B82F6, #1E3A8A); margin-bottom:10px; box-shadow:0 6px 14px rgba(59,130,246,.25)
+  }
+
+  .span-4{grid-column:span 4}
+  @media (max-width:900px){ .span-4{grid-column:span 6}}
+  @media (max-width:640px){ .span-4{grid-column:span 12}}
+
+  .view{display:none; animation:fade .15s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+
+  .toolbar{display:flex; align-items:center; gap:8px; margin:10px 0 18px}
+  input[type="text"], input[type="date"], input[type="number"], select, textarea{
+    width:100%; padding:12px 12px; border:1px solid #E5E7EB; border-radius:10px; background:#FFF;
+    outline:none; transition:.2s border,.2s box-shadow; font:inherit;
+  }
+  textarea{min-height:140px}
+  input:focus, select:focus, textarea:focus{border-color:#B8C3FF; box-shadow:0 0 0 4px var(--ring)}
+  .grid{display:grid; gap:14px}
+  .cols-2{grid-template-columns:repeat(2,1fr)}
+  .cols-3{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:900px){ .cols-2,.cols-3{grid-template-columns:1fr}}
+
+  .panel{background:var(--card); border:1px solid #E5E7EB; border-radius:var(--radius); padding:16px}
+  .panel h4{margin:0 0 10px}
+  .muted{color:var(--muted)}
+
+  table{width:100%; border-collapse:collapse; font-size:14px}
+  th, td{padding:10px 8px; border-bottom:1px solid #EEF2F7; text-align:left}
+  th{font-weight:600; color:#1F2937}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700}
+  .risk-high{background:#FEF2F2; color:#B91C1C}
+  .risk-med{background:#FEF9C3; color:#92400E}
+  .risk-low{background:#ECFDF5; color:#065F46}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+
+  footer{border-top:1px solid #E5E7EB; padding:20px 0; text-align:center; color:var(--muted)}
+  .link{color:var(--primary); text-decoration:none}
+  .link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="brand">
+      <img src="lexstart-logo.svg" alt="LexStart OS" style="height:40px"/>
+      <span class="badge">Prototype</span>
+    </div>
+    <div class="actions">
+      <button class="btn-ghost" onclick="router('home')">Home</button>
+      <button class="btn-primary">Login</button>
+      <button class="btn-accent">Sign Up</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- HOME -->
+  <section id="home" class="view active home">
+    <div class="hero">
+      <h1>Your Complete Legal Operating System</h1>
+      <p class="muted">Draft, review, comply and connect — purpose‑built for in‑house counsel.</p>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="router('docs')">Start in LexDocs</button>
+        <button class="btn-accent" onclick="router('review')">Try LexAI Review</button>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card span-4">
+        <div class="icon">D</div>
+        <h3>LexDocs</h3>
+        <p>Generate polished agreements from guided forms and a clause library.</p>
+        <div class="mini">Templates: NDA, MSA, Supply, Services, Purchase, Consultancy</div>
+        <div class="open"><button class="btn-primary" onclick="router('docs')">Open</button></div>
+      </div>
+
+      <div class="card span-4">
+        <div class="icon">AI</div>
+        <h3>LexAI Review</h3>
+        <p>Upload a draft; get a risk map with suggested redlines and rationale.</p>
+        <div class="mini">Flags: Liability, Indemnity, IP, LDs, Payment, Governing law</div>
+        <div class="open"><button class="btn-primary" onclick="router('review')">Open</button></div>
+      </div>
+
+      <div class="card span-4">
+        <div class="icon">C</div>
+        <h3>LexComply</h3>
+        <p>Country & state compliance checklists with owners and evidence.</p>
+        <div class="mini">Start with India (TN/AP/GJ)</div>
+        <div class="open"><button class="btn-primary" onclick="router('comply')">Open</button></div>
+      </div>
+
+      <div class="card span-4">
+        <div class="icon">G</div>
+        <h3>LexGlobal</h3>
+        <p>Concise incorporation guides + next steps per jurisdiction.</p>
+        <div class="mini">Top 5 markets preloaded</div>
+        <div class="open"><button class="btn-primary" onclick="router('global')">Open</button></div>
+      </div>
+
+      <div class="card span-4">
+        <div class="icon">T</div>
+        <h3>LexToolkit</h3>
+        <p>Find vetted lawyers by expertise and jurisdiction for overflow work.</p>
+        <div class="mini">Shortlist & contact in one click</div>
+        <div class="open"><button class="btn-primary" onclick="router('toolkit')">Open</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LexDocs -->
+  <section id="docs" class="view">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="router('home')">← Back</button>
+      <h3>LexDocs – Generate Document</h3>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="panel">
+        <h4>Form Inputs</h4>
+        <div class="grid">
+          <label>Document Type
+            <select id="docType">
+              <option>Supply Agreement</option>
+              <option>Services Agreement</option>
+              <option>Consultancy Agreement</option>
+              <option>NDA (Mutual)</option>
+            </select>
+          </label>
+          <label>Party A (Company) <input id="partyA" type="text" placeholder="Wheels India Limited" /></label>
+          <label>Party B (Counterparty) <input id="partyB" type="text" placeholder="ABC Components Pvt Ltd" /></label>
+          <label>Effective Date <input id="effDate" type="date"/></label>
+          <label>Term (months) <input id="term" type="number" min="1" value="12"/></label>
+          <label>Governing Law
+            <select id="law"><option>India</option><option>Germany</option><option>UAE</option><option>Singapore</option></select>
+          </label>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px">
+          <button class="btn-primary" onclick="generateDocument()">Generate</button>
+          <button class="btn-ghost" onclick="loadSampleForm()">Load Sample</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4>Preview</h4>
+        <div id="docPreview" class="mono muted">Fill the form and click Generate…</div>
+        <div style="margin-top:12px">
+          <button id="downloadBtn" class="btn-accent" disabled onclick="downloadDoc()">Download .doc</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LexAI Review -->
+  <section id="review" class="view">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="router('home')">← Back</button>
+      <h3>LexAI Review – Risk Map</h3>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="panel">
+        <h4>Upload or Paste Draft</h4>
+        <input type="file" id="fileInput" accept=".txt,.doc,.docx,.pdf" />
+        <div style="margin:10px 0; text-align:center; color:#94A3B8">— or —</div>
+        <textarea id="draftText" placeholder="Paste contract text here…"></textarea>
+        <div style="margin-top:12px; display:flex; gap:10px">
+          <button class="btn-primary" onclick="analyze()">Analyze</button>
+          <button class="btn-ghost" onclick="loadSampleDraft()">Load Sample</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4>Findings</h4>
+        <div id="riskList" class="muted">Upload/paste and click Analyze.</div>
+        <div style="margin-top:12px">
+          <button id="applyBtn" class="btn-accent" disabled onclick="applySuggestions()">Apply Suggestions</button>
+        </div>
+        <h4 style="margin-top:18px">Revised Text</h4>
+        <textarea id="revisedText" class="mono" placeholder="Revisions will appear here…" readonly></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- LexComply -->
+  <section id="comply" class="view">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="router('home')">← Back</button>
+      <h3>LexComply – Checklist</h3>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="panel">
+        <h4>Filters</h4>
+        <label>Country
+          <select id="compCountry" onchange="renderCompliance()">
+            <option>India</option><option>Germany</option><option>UAE</option>
+          </select>
+        </label>
+        <label>State (if India)
+          <select id="compState" onchange="renderCompliance()">
+            <option>Tamil Nadu</option><option>Andhra Pradesh</option><option>Gujarat</option>
+          </select>
+        </label>
+        <label>Industry
+          <select id="compInd" onchange="renderCompliance()">
+            <option>Manufacturing</option><option>Software/IT</option><option>Trading</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="panel" style="grid-column:span 2">
+        <h4>Checklist</h4>
+        <table id="compTable"><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- LexGlobal -->
+  <section id="global" class="view">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="router('home')">← Back</button>
+      <h3>LexGlobal – Incorporation Guides</h3>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="panel">
+        <h4>Select Country</h4>
+        <select id="incCountry" onchange="renderIncorp()">
+          <option>India</option><option>Germany</option><option>USA (Delaware)</option><option>Singapore</option><option>UAE (Dubai)</option>
+        </select>
+        <div style="margin-top:12px"><button class="btn-ghost" onclick="renderIncorp()">Load Guide</button></div>
+      </div>
+
+      <div class="panel">
+        <h4>Guide</h4>
+        <ol id="incList" class="muted"></ol>
+        <div style="margin-top:12px; display:flex; gap:10px">
+          <button class="btn-primary">Use Template</button>
+          <button class="btn-accent" onclick="router('toolkit')">Find Lawyer</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LexToolkit -->
+  <section id="toolkit" class="view">
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="router('home')">← Back</button>
+      <h3>LexToolkit – Lawyer Directory</h3>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="panel">
+        <h4>Filter</h4>
+        <label>Jurisdiction
+          <select id="lawCountry" onchange="renderLawyers()">
+            <option>India</option><option>Germany</option><option>UAE</option><option>Singapore</option>
+          </select>
+        </label>
+        <label>Expertise
+          <select id="lawExp" onchange="renderLawyers()">
+            <option>Contracts</option><option>Employment</option><option>Litigation</option><option>IP</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="panel" style="grid-column:span 2">
+        <h4>Shortlist</h4>
+        <table id="lawTable"><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    © 2025 LexStart OS · <a class="link" href="#">Privacy</a> · <a class="link" href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+  function router(view){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(view).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+    if(view==='comply') renderCompliance();
+    if(view==='global') renderIncorp();
+    if(view==='toolkit') renderLawyers();
+  }
+
+  const templates = {
+    "Supply Agreement": (f)=>`
+      SUPPLY AGREEMENT
+
+      This Agreement is made on ${f.effDate} between ${f.partyA} ("Buyer") and ${f.partyB} ("Supplier").
+
+      1. Term. The term is ${f.term} months from the Effective Date.
+      2. Price & Payment. As agreed in the Purchase Orders; payment within 30 days of invoice.
+      3. Quality. Goods shall conform to specifications and applicable standards.
+      4. Warranties. Supplier warrants the goods are free from defects and title is good.
+      5. Indemnity. Supplier shall indemnify Buyer for third-party claims arising from breach or IP infringement.
+      6. Limitation of Liability. Each party's aggregate liability is limited to the total fees paid in the 12 months preceding the claim, excluding fraud or wilful misconduct.
+      7. IP. Each party retains its pre-existing IP.
+      8. Confidentiality. Both parties will keep Confidential Information secret for 3 years from expiry.
+      9. Governing Law & Jurisdiction. ${f.law} law; courts with appropriate jurisdiction shall apply.
+
+      Signed:
+      ${f.partyA}        ${f.partyB}
+    `,
+    "Services Agreement": (f)=>`
+      SERVICES AGREEMENT
+
+      Effective ${f.effDate}, between ${f.partyA} ("Client") and ${f.partyB} ("Service Provider") for a term of ${f.term} months.
+
+      Scope: Provider shall perform services per Statements of Work.
+      Fees: As per SOW; 30-day payment.
+      Change Control, IP ownership (Client owns deliverables), Confidentiality, Data Protection.
+      Liability cap: 12 months' fees; carve-outs for IP infringement and wilful misconduct.
+      Governing Law: ${f.law}.
+    `,
+    "Consultancy Agreement": (f)=>`
+      CONSULTANCY AGREEMENT
+
+      Parties: ${f.partyA} and ${f.partyB}. Effective ${f.effDate}.
+      Term: ${f.term} months.
+
+      Consultant provides advisory services; independent contractor.
+      Deliverables and fees per Annex.
+      Confidentiality, Non-solicit (12 months), Liability cap (fees paid), GST as applicable.
+      Governing Law: ${f.law}.
+    `,
+    "NDA (Mutual)": (f)=>`
+      MUTUAL NON-DISCLOSURE AGREEMENT
+
+      Between ${f.partyA} and ${f.partyB}, effective ${f.effDate}, for ${f.term} months.
+
+      Confidential Information, Purpose, Use restrictions, Standard exclusions, 3-year survival.
+      Remedies: injunctive relief; return/destroy upon request.
+      Governing Law: ${f.law}.
+    `
+  };
+
+  function loadSampleForm(){
+    document.getElementById('partyA').value = 'Wheels India Limited';
+    document.getElementById('partyB').value = 'ABC Components Pvt Ltd';
+    document.getElementById('effDate').valueAsDate = new Date();
+    document.getElementById('term').value = 24;
+    document.getElementById('law').value = 'India';
+  }
+
+  function generateDocument(){
+    const f = {
+      type: document.getElementById('docType').value,
+      partyA: document.getElementById('partyA').value || 'Party A',
+      partyB: document.getElementById('partyB').value || 'Party B',
+      effDate: document.getElementById('effDate').value || '________',
+      term: document.getElementById('term').value || '12',
+      law: document.getElementById('law').value || 'India'
+    };
+    const content = (templates[f.type]||templates["Supply Agreement"])(f).trim();
+    document.getElementById('docPreview').textContent = content;
+    document.getElementById('downloadBtn').dataset.content = content;
+    document.getElementById('downloadBtn').disabled = false;
+  }
+
+  function downloadDoc(){
+    const content = document.getElementById('downloadBtn').dataset.content || '';
+    const html = `<pre style="font-family:Arial,Helvetica,sans-serif;white-space:pre-wrap">${content}</pre>`;
+    const blob = new Blob([html], {type:'application/msword'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'LexDocs.doc';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  const rules = [
+    {
+      id:'liability_cap',
+      name:'Limitation of Liability Missing',
+      match:/unlimited liability|without limit|no limit/i,
+      level:'high',
+      suggest:`Replace with: "Each party's aggregate liability shall not exceed the fees paid in the 12 months preceding the claim, excluding fraud or wilful misconduct."`
+    },
+    {
+      id:'indemnity_present',
+      name:'Indemnity Absent',
+      match:/(indemnif(y|ication)|hold harmless)/i,
+      invert:true,
+      level:'medium',
+      suggest:`Add indemnity: "Supplier shall indemnify and hold harmless Buyer from third-party claims arising from breach, negligence, or IP infringement."`
+    },
+    {
+      id:'governing_law',
+      name:'Governing Law Not Stated',
+      match:/(governing law|jurisdiction)/i,
+      invert:true,
+      level:'low',
+      suggest:`Add: "This Agreement is governed by the laws of India and parties submit to the exclusive jurisdiction of competent courts."`
+    },
+    {
+      id:'payment_terms',
+      name:'Payment Terms Missing',
+      match:/payment\s*(term|within|days)/i,
+      invert:true,
+      level:'low',
+      suggest:`Add: "Invoices are payable within 30 days from the date of receipt."`
+    },
+    {
+      id:'ip_ownership',
+      name:'IP Ownership Unclear',
+      match:/intellectual property|IP ownership|assign/i,
+      invert:true,
+      level:'medium',
+      suggest:`Add: "Each party retains pre-existing IP. Deliverables are assigned to the Client upon full payment."`
+    }
+  ];
+
+  function loadSampleDraft(){
+    const sample = `This Agreement sets out the commercial terms. The Supplier shall provide components and the Buyer shall pay the invoiced amounts.
+    Liability of the Supplier shall be without limit. There is no mention of governing law or payment timelines.`;
+    document.getElementById('draftText').value = sample;
+  }
+
+  document.addEventListener('change', async (e)=>{
+    if(e.target && e.target.id==='fileInput'){
+      const f = e.target.files[0]; if(!f) return;
+      if(f.type.startsWith('text/')){ document.getElementById('draftText').value = await f.text(); return; }
+      const reader = new FileReader();
+      reader.onload = ()=> document.getElementById('draftText').value = reader.result.substring(0, 20000);
+      reader.readAsText(f);
+    }
+  });
+
+  let lastFindings = [];
+  function analyze(){
+    const text = (document.getElementById('draftText').value||'').trim();
+    if(!text){ alert('Paste or upload a draft first.'); return; }
+    const findings = [];
+    for(const r of rules){
+      const hit = r.invert ? !r.match.test(text) : r.match.test(text);
+      if(hit){
+        findings.push({
+          id:r.id, name:r.name, level:r.level, suggest:r.suggest
+        });
+      }
+    }
+    lastFindings = findings;
+    renderFindings(findings);
+    document.getElementById('applyBtn').disabled = findings.length===0;
+  }
+
+  function renderFindings(items){
+    const el = document.getElementById('riskList');
+    if(items.length===0){ el.innerHTML = '<span class="muted">No issues found with current ruleset.</span>'; return; }
+    const rows = items.map((f,i)=>`
+      <div class="panel" style="margin-bottom:10px">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+          <strong>${i+1}. ${f.name}</strong>
+          <span class="pill ${f.level==='high'?'risk-high':f.level==='medium'?'risk-med':'risk-low'}">${f.level.toUpperCase()}</span>
+        </div>
+        <div class="muted" style="margin-top:6px">${f.suggest}</div>
+        <label style="display:flex; gap:8px; align-items:center; margin-top:8px">
+          <input type="checkbox" data-id="${f.id}" class="applyChk" checked/> Apply suggestion
+        </label>
+      </div>
+    `).join('');
+    el.innerHTML = rows;
+  }
+
+  function applySuggestions(){
+    const base = document.getElementById('draftText').value;
+    let revised = base;
+    document.querySelectorAll('.applyChk').forEach(chk=>{
+      if(!chk.checked) return;
+      const f = lastFindings.find(x=>x.id===chk.dataset.id);
+      if(!f) return;
+      if(f.id==='liability_cap'){
+        revised = revised.replace(/liability[^.]*\./i, 'Each party\\'s aggregate liability shall not exceed the fees paid in the 12 months preceding the claim, excluding fraud or wilful misconduct.');
+      } else if(f.id==='indemnity_present'){
+        revised += `\\n\\nSupplier shall indemnify and hold harmless Buyer from third-party claims arising from breach, negligence, or IP infringement.`;
+      } else if(f.id==='governing_law'){
+        revised += `\\n\\nThis Agreement is governed by the laws of India and parties submit to the exclusive jurisdiction of competent courts.`;
+      } else if(f.id==='payment_terms'){
+        revised += `\\n\\nInvoices are payable within 30 days from the date of receipt.`;
+      } else if(f.id==='ip_ownership'){
+        revised += `\\n\\nEach party retains pre-existing IP. Deliverables are assigned to the Client upon full payment.`;
+      }
+    });
+    document.getElementById('revisedText').value = revised;
+  }
+
+  const complianceDB = {
+    "India": {
+      "Tamil Nadu":[
+        {task:"Factories Act Register updates", freq:"Monthly", owner:"Plant HR", evidence:"Form 13"},
+        {task:"ESI & EPF remittance", freq:"Monthly", owner:"Payroll", evidence:"Challan"},
+        {task:"GST Returns (GSTR-1/3B)", freq:"Monthly", owner:"Finance", evidence:"Acknowledgement"}
+      ],
+      "Andhra Pradesh":[
+        {task:"Shops & Establishments renewal", freq:"Annual", owner:"Admin", evidence:"Certificate"},
+        {task:"Professional Tax payment", freq:"Monthly", owner:"Finance", evidence:"Challan"}
+      ],
+      "Gujarat":[
+        {task:"Pollution Control consent compliance", freq:"Quarterly", owner:"EHS", evidence:"Report"},
+        {task:"Weights & Measures calibration", freq:"Quarterly", owner:"QA", evidence:"Calibration log"}
+      ]
+    },
+    "Germany":{"_":[
+      {task:"Trade Register filings", freq:"Event‑based", owner:"Legal", evidence:"HRB extract"},
+      {task:"VAT returns (UStVA)", freq:"Monthly", owner:"Finance", evidence:"Elster receipt"}
+    ]},
+    "UAE":{"_":[
+      {task:"Corporate Tax return", freq:"Annual", owner:"Finance", evidence:"FTA ack"},
+      {task:"Ultimate Beneficial Owner (UBO) update", freq:"Annual", owner:"Legal", evidence:"Register"}
+    ]}
+  };
+
+  function renderCompliance(){
+    const c = document.getElementById('compCountry').value;
+    const s = document.getElementById('compState').value;
+    const ind = document.getElementById('compInd').value;
+    let items = [];
+    if(c==='India'){ items = complianceDB[c][s]||[]; }
+    else { items = complianceDB[c]["_"]||[]; }
+    const tbody = document.querySelector('#compTable tbody');
+    tbody.innerHTML = `
+      <tr><th>Task</th><th>Frequency</th><th>Owner</th><th>Evidence</th><th>Status</th></tr>
+      ${items.map(t=>`
+        <tr>
+          <td>${t.task} (${ind})</td>
+          <td>${t.freq}</td>
+          <td>${t.owner}</td>
+          <td>${t.evidence}</td>
+          <td><input type="checkbox" /></td>
+        </tr>`).join('')}
+    `;
+  }
+
+  const guides = {
+    "India":[
+      "Obtain Digital Signature & DIN",
+      "Reserve name (RUN/SPICe+ Part A)",
+      "File SPICe+ (Part B) with MoA, AoA",
+      "PAN/TAN + bank account",
+      "GST registration (if applicable)"
+    ],
+    "Germany":[
+      "Choose GmbH/UG; draft Articles",
+      "Notary appointment & share capital deposit",
+      "Trade Register (HRB) filing",
+      "Tax office registration",
+      "Social security & VAT setup"
+    ],
+    "USA (Delaware)":[
+      "Choose C‑Corp/LLC; reserve name",
+      "File Certificate of Incorporation",
+      "Get EIN, open bank account",
+      "Issue founder stock; 83(b) if needed",
+      "State + federal tax registrations"
+    ],
+    "Singapore":[
+      "Reserve name via BizFile+",
+      "Appoint local director",
+      "Incorporate (ACRA) & open bank",
+      "CorpPass & GST (if applicable)"
+    ],
+    "UAE (Dubai)":[
+      "Choose Mainland/Free Zone",
+      "Name reservation & initial approval",
+      "MOA & licensing, lease Ejari",
+      "Establishment card & visas"
+    ]
+  };
+
+  function renderIncorp(){
+    const c = document.getElementById('incCountry').value;
+    const list = guides[c]||[];
+    document.getElementById('incList').innerHTML = list.map(x=>`<li>${x}</li>`).join('');
+  }
+
+  const lawyers = [
+    {name:"Arjun Rao", country:"India", exp:"Contracts", email:"arjun@firm.in"},
+    {name:"Meera Iyer", country:"India", exp:"Employment", email:"meera@firm.in"},
+    {name:"Rohit Shah", country:"India", exp:"Litigation", email:"rohit@firm.in"},
+    {name:"Hans Becker", country:"Germany", exp:"Contracts", email:"hans@kanzlei.de"},
+    {name:"Layla Al Nahyan", country:"UAE", exp:"IP", email:"layla@uaefirm.ae"},
+    {name:"Wei Lin", country:"Singapore", exp:"Contracts", email:"wei@sgfirm.sg"}
+  ];
+
+  function renderLawyers(){
+    const c = document.getElementById('lawCountry').value;
+    const e = document.getElementById('lawExp').value;
+    const list = lawyers.filter(l=>l.country===c && l.exp===e);
+    const tbody = document.querySelector('#lawTable tbody');
+    tbody.innerHTML = `
+      <tr><th>Name</th><th>Jurisdiction</th><th>Expertise</th><th>Contact</th><th>Action</th></tr>
+      ${list.map(l=>`
+        <tr>
+          <td>${l.name}</td><td>${l.country}</td><td>${l.exp}</td>
+          <td><a class="link" href="mailto:${l.email}">${l.email}</a></td>
+          <td><button class="btn-primary" onclick="alert('Intro email sent to ${l.name}')">Request Intro</button></td>
+        </tr>`).join('')}
+    `;
+  }
+</script>
+</body>
+</html>
